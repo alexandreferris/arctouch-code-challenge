@@ -1,4 +1,4 @@
-package com.arctouch.codechallenge.home
+package com.arctouch.codechallenge.ui.home
 
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -11,7 +11,21 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.movie_item.view.*
 
-class HomeAdapter(private val movies: List<Movie>) : RecyclerView.Adapter<HomeAdapter.ViewHolder>() {
+class HomeAdapter(private val itemClickListener: (Int) -> Unit) : RecyclerView.Adapter<HomeAdapter.ViewHolder>() {
+
+    private lateinit var movies: List<Movie>
+
+    fun setMoviesList(movies: List<Movie>) {
+        this.movies = movies
+    }
+
+    // Listener adapter for setOnClickListener and setOnLongClickListener
+    fun <T : RecyclerView.ViewHolder> T.listen(event: (position: Int, delete: Boolean) -> Unit): T {
+        itemView.setOnClickListener {
+            event.invoke(movies[adapterPosition].id, false)
+        }
+        return this
+    }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -27,11 +41,14 @@ class HomeAdapter(private val movies: List<Movie>) : RecyclerView.Adapter<HomeAd
                 .apply(RequestOptions().placeholder(R.drawable.ic_image_placeholder))
                 .into(itemView.posterImageView)
         }
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.movie_item, parent, false)
-        return ViewHolder(view)
+        return ViewHolder(view).listen { pos, _ ->
+            itemClickListener.invoke(pos)
+        }
     }
 
     override fun getItemCount() = movies.size
